@@ -2,22 +2,27 @@ import { useState } from 'react'
 import FrequencyGenerator from './components/FrequencyGenerator'
 import SensorMonitor from './components/SensorMonitor'
 import FFTAnalyzer from './components/FFTAnalyzer'
+import SweepPanel from './components/SweepPanel'
 import { useWebAudio } from './hooks/useWebAudio'
 import { useSensorData } from './hooks/useSensorData'
+import { useAnalyzer } from './hooks/useAnalyzer'
 
 const TABS = [
   { id: 'generator', label: 'Generator' },
   { id: 'sensor', label: 'Sensor' },
   { id: 'analyzer', label: 'Analyzer' },
+  { id: 'sweep', label: 'Sweep' },
 ]
 
 export default function App() {
   const [tab, setTab] = useState('generator')
 
-  // Shared instances so state persists across tab switches and the generator
-  // keeps playing while you watch the analyzer.
+  // Shared instances so state persists across tab switches: the generator keeps
+  // playing while you watch the analyzer, and the Analyzer + Sweep tabs read
+  // from the same measurement source.
   const audio = useWebAudio()
   const sensor = useSensorData()
+  const analyzer = useAnalyzer(sensor)
 
   return (
     <div className="min-h-full flex flex-col max-w-lg mx-auto">
@@ -36,12 +41,13 @@ export default function App() {
       <main className="flex-1 px-4 pb-28">
         {tab === 'generator' && <FrequencyGenerator audio={audio} />}
         {tab === 'sensor' && <SensorMonitor sensor={sensor} />}
-        {tab === 'analyzer' && <FFTAnalyzer sensor={sensor} />}
+        {tab === 'analyzer' && <FFTAnalyzer analyzer={analyzer} />}
+        {tab === 'sweep' && <SweepPanel audio={audio} analyzer={analyzer} />}
       </main>
 
       {/* Bottom tab bar — thumb-reachable */}
       <nav className="fixed bottom-0 inset-x-0 max-w-lg mx-auto border-t border-edge bg-ink/95 backdrop-blur">
-        <div className="grid grid-cols-3">
+        <div className="grid grid-cols-4">
           {TABS.map((t) => (
             <button
               key={t.id}
@@ -51,7 +57,7 @@ export default function App() {
               }`}
             >
               {t.label}
-              {tab === t.id && <div className="h-0.5 bg-accent rounded-full mt-1 mx-6" />}
+              {tab === t.id && <div className="h-0.5 bg-accent rounded-full mt-1 mx-4" />}
             </button>
           ))}
         </div>

@@ -7,8 +7,11 @@ Miniatur-Brücke) mit einem Ton an, misst die Vibrations- bzw. Audio-Antwort und
 
 Das ist angewandte Strukturdynamik / Modalanalyse im Kleinformat — kein Voodoo.
 
-> **Status:** Core-MVP (Phase 1–3). Frequenz-Generator, Live-Sensor-Monitor und
-> FFT-/Resonanz-Erkennung sind fertig. Sweep-Automatik, Export und UI-Polish folgen.
+> **Status:** Phase 1–4. Generator, Live-Sensor-Monitor, FFT-/Resonanz-Erkennung
+> **und der automatische Sweep mit CSV-Export** sind fertig. UI-Polish & weitere
+> Export-Formate folgen.
+
+**Live:** https://vibra-lab-mobile.vercel.app/
 
 ## Features
 
@@ -17,6 +20,9 @@ Das ist angewandte Strukturdynamik / Modalanalyse im Kleinformat — kein Voodoo
 - **Analyzer** — FFT-Spektrum mit automatischem Resonanz-Marker, Q-Faktor und Pegel. Zwei umschaltbare Quellen:
   - 🎤 **Mikrofon** — voller Audio-Bereich, FFT nativ über die Web Audio `AnalyserNode`.
   - 📳 **Akzelerometer** — Tieffrequenz-Vibration (eigene gefensterte FFT).
+- **Sweep** — automatischer **swept-sine**: fährt einen Frequenzbereich mit einstellbarer
+  Geschwindigkeit (Hz/s) ab, misst die Antwort und plottet die **Amplituden-Response-Kurve**.
+  Der höchste Punkt = Resonanzfrequenz, inkl. **Q-Faktor** und **CSV-Export** der Messpunkte.
 
 ## Wichtig: physikalische Grenzen (ehrlich)
 
@@ -79,9 +85,20 @@ src/
 └── utils/{peakDetector,windowing,format}.js
 ```
 
+## Bedienung — Sweep (Phase 4)
+
+1. **Sweep**-Tab öffnen, Quelle wählen (Mikrofon oder Akzelerometer) und Zugriff erlauben.
+2. Start-/End-Frequenz und Geschwindigkeit einstellen (langsamer = genauer).
+3. Handy mit dem Lautsprecher ans Objekt halten, **Sweep starten**.
+4. Die App fährt die Frequenzen ab und zeichnet die **Response-Kurve**; der orange Marker
+   nennt die **Resonanzfrequenz**, darunter **Q-Faktor** und **Pegel**.
+5. **CSV exportieren** speichert alle Messpunkte (Frequenz, Amplitude) inkl. Metadaten.
+
+> Bei der Akzelerometer-Quelle wird die End-Frequenz automatisch auf die Nyquist-Grenze
+> (~30 Hz) begrenzt — für höhere Bereiche das Mikrofon nutzen.
+
 ## Roadmap (nächste Iterationen)
 
-- **Phase 4** — Automatik-Sweep 10–500 Hz + Amplituden-Response-Kurve
 - **Phase 5** — UI-Polish (3-Panel, History, Settings)
-- **Phase 6** — CSV/JSON/PNG-Export + GitHub-Actions-Deploy
+- **Phase 6** — JSON/PNG-Export + GitHub-Actions-Deploy
 - **Phase 7** — Multi-Objekt-Vergleich, Dämpfungs-/Decay-Analyse

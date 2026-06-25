@@ -85,3 +85,52 @@ function crossBin(spectrum, i0, i1, target) {
   const t = (target - v0) / (v1 - v0)
   return i0 + t
 }
+
+/**
+ * Find the resonance from a measured swept-sine response curve.
+ *
+ * @param {{f:number, amp:number}[]} points  measured points, ascending in f.
+ *        `amp` is the response level in dB at frequency `f`.
+ * @returns {null | {frequency:number, level:number, q:number|null}}
+ */
+export function resonanceFromCurve(points) {
+  if (!points || points.length < 3) {
+    if (points && points.length) {
+      const p = points.reduce((a, b) => (b.amp > a.amp ? b : a))
+      return { frequency: p.f, level: p.amp, q: null }
+    }
+    return null
+  }
+
+  // Peak point of the response.
+  let pk = 0
+  for (let i = 1; i < points.length; i++) if (points[i].amp > points[pk].amp) pk = i
+  const fPeak = points[pk].f
+  const peakDb = points[pk].amp
+  const target = peakDb - 3
+
+  // Walk outward to the -3 dB half-power points, interpolating the crossing f.
+  const left = crossFreq(points, pk, -1, target)
+  const right = crossFreq(points, pk, +1, target)
+
+  let q = null
+  if (left != null && right != null && right > left) {
+    q = fPeak / (right - left)
+  }
+  return { frequency: fPeak, level: peakDb, q }
+}
+
+/** Walk from the peak in `dir` until amp drops below `target`; interpolate f. */
+function crossFreq(points, pk, dir, target) {
+  let i = pk
+  while (i + dir >= 0 && i + dir < points.length && points[i + dir].amp > target) {
+    i += dir
+  }
+  const j = i + dir
+  if (j < 0 || j >= points.length) return null // never crossed within range
+  const a = points[i]
+  const b = points[j]
+  if (a.amp === b.amp) return a.f
+  const t = (target - a.amp) / (b.amp - a.amp)
+  return a.f + t * (b.f - a.f)
+}
