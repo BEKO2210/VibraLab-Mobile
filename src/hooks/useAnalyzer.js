@@ -62,5 +62,9 @@ export function useAnalyzer(sensor) {
     maxHz,
     getSpectrum,
     getMagnitudeAt,
+    // Direct sub-source access for features (e.g. the tap test) that need a
+    // specific sensor regardless of the selected `source`.
+    mic,
+    accelFFT,
   }
 }

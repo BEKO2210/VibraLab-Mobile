@@ -23,6 +23,10 @@ Das ist angewandte Strukturdynamik / Modalanalyse im Kleinformat — kein Voodoo
 - **Sweep** — automatischer **swept-sine**: fährt einen Frequenzbereich mit einstellbarer
   Geschwindigkeit (Hz/s) ab, misst die Antwort und plottet die **Amplituden-Response-Kurve**.
   Der höchste Punkt = Resonanzfrequenz, inkl. **Q-Faktor** und **CSV-Export** der Messpunkte.
+- **Tap** *(Phase 8)* — **„Handy einfach drauflegen"**: Tap-/Ping-Test (Modalanalyse). Handy
+  flach aufs Objekt legen, antippen (oder Selbst-Anregung per Vibrationsmotor) → die App
+  erfasst das **Ausschwingen (Ringdown)** und bestimmt **Resonanzfrequenz, Q-Faktor und
+  Ausschwingzeit** — getrennt für 📳 Struktur (Akzelerometer, ≤~30 Hz) und 🎤 Klang (Mikrofon).
 
 ## Wichtig: physikalische Grenzen (ehrlich)
 
@@ -97,8 +101,20 @@ src/
 > Bei der Akzelerometer-Quelle wird die End-Frequenz automatisch auf die Nyquist-Grenze
 > (~30 Hz) begrenzt — für höhere Bereiche das Mikrofon nutzen.
 
+## Bedienung — Tap-Test (Phase 8)
+
+1. **Tap**-Tab öffnen, Akzelerometer-Zugriff erlauben (optional Mikrofon mitnutzen).
+2. Handy **flach auf das Objekt** legen.
+3. **„Auf Objekt legen & messen"** drücken, dann das Objekt kurz **antippen**
+   (oder vorher *Selbst-Anregung* aktivieren — dann pingt sich das Handy selbst).
+4. Die App erkennt den Anstoß automatisch, misst das Ausschwingen und zeigt
+   **Resonanzfrequenz, Q-Faktor und Ausschwingzeit** — strukturell und akustisch.
+
+> Steife/kleine Objekte klingen oft im hörbaren Bereich → das **Mikrofon**-Ergebnis ist dann
+> aussagekräftiger als das Akzelerometer (das durch Nyquist auf ~30 Hz begrenzt ist).
+
 ## Roadmap (nächste Iterationen)
 
 - **Phase 5** — UI-Polish (3-Panel, History, Settings)
 - **Phase 6** — JSON/PNG-Export + GitHub-Actions-Deploy
-- **Phase 7** — Multi-Objekt-Vergleich, Dämpfungs-/Decay-Analyse
+- **Phase 7** — Multi-Objekt-Vergleich (Dämpfungs-/Decay-Analyse ist mit Phase 8 grundgelegt)
