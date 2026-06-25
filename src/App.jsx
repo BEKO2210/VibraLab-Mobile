@@ -3,15 +3,17 @@ import FrequencyGenerator from './components/FrequencyGenerator'
 import SensorMonitor from './components/SensorMonitor'
 import FFTAnalyzer from './components/FFTAnalyzer'
 import SweepPanel from './components/SweepPanel'
+import TapTest from './components/TapTest'
 import { useWebAudio } from './hooks/useWebAudio'
 import { useSensorData } from './hooks/useSensorData'
 import { useAnalyzer } from './hooks/useAnalyzer'
 
 const TABS = [
-  { id: 'generator', label: 'Generator' },
+  { id: 'generator', label: 'Gen.' },
   { id: 'sensor', label: 'Sensor' },
-  { id: 'analyzer', label: 'Analyzer' },
+  { id: 'analyzer', label: 'FFT' },
   { id: 'sweep', label: 'Sweep' },
+  { id: 'tap', label: 'Tap' },
 ]
 
 export default function App() {
@@ -43,21 +45,22 @@ export default function App() {
         {tab === 'sensor' && <SensorMonitor sensor={sensor} />}
         {tab === 'analyzer' && <FFTAnalyzer analyzer={analyzer} />}
         {tab === 'sweep' && <SweepPanel audio={audio} analyzer={analyzer} />}
+        {tab === 'tap' && <TapTest sensor={sensor} analyzer={analyzer} />}
       </main>
 
       {/* Bottom tab bar — thumb-reachable */}
       <nav className="fixed bottom-0 inset-x-0 max-w-lg mx-auto border-t border-edge bg-ink/95 backdrop-blur">
-        <div className="grid grid-cols-4">
+        <div className="grid grid-cols-5">
           {TABS.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`py-4 text-sm font-medium transition-colors ${
+              className={`py-4 text-[13px] font-medium transition-colors ${
                 tab === t.id ? 'text-accent' : 'text-gray-500'
               }`}
             >
               {t.label}
-              {tab === t.id && <div className="h-0.5 bg-accent rounded-full mt-1 mx-4" />}
+              {tab === t.id && <div className="h-0.5 bg-accent rounded-full mt-1 mx-3" />}
             </button>
           ))}
         </div>
