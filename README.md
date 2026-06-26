@@ -111,8 +111,10 @@ src/
      **unabhängig vom Vibrationsmotor**.
    - 📳 **Vibration** — nutzt `navigator.vibrate`; auf Android (v.a. Samsung) im
      Lautlos-/Energiesparmodus oft vom System blockiert.
-4. Die App erkennt den Anstoß automatisch, misst das Ausschwingen und zeigt
-   **Resonanzfrequenz, Q-Faktor und Ausschwingzeit** — strukturell und akustisch.
+4. Die App misst **mehrfach** (Durchläufe 3/5/8 wählbar), verwirft Ausreißer und zeigt nur
+   das über die Durchläufe **übereinstimmende** Ergebnis — **Resonanzfrequenz, Q-Faktor,
+   Ausschwingzeit** plus „N/M Durchläufe stimmen überein" und Streuung (±%) als
+   Verlässlichkeits-Maß. Getrennt für Struktur (Akzelerometer) und Klang (Mikrofon).
 
 > Steife/kleine Objekte klingen oft im hörbaren Bereich → das **Mikrofon**-Ergebnis ist dann
 > aussagekräftiger als das Akzelerometer (das durch Nyquist auf ~30 Hz begrenzt ist).
