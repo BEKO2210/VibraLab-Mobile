@@ -116,7 +116,14 @@ export function useWebAudio() {
    * @param {number} durationMs  burst length (default 90 ms)
    * @returns {number} the burst duration in ms, so callers can time the capture
    */
-  const playImpulse = useCallback(async (durationMs = 90) => {
+  /** Create/resume the AudioContext from a user gesture (unlocks later sounds). */
+  const resume = useCallback(async () => {
+    const ctx = ensureContext()
+    if (ctx.state === 'suspended') await ctx.resume()
+    return ctx
+  }, [ensureContext])
+
+  const playImpulse = useCallback(async (durationMs = 130) => {
     const ctx = ensureContext()
     if (ctx.state === 'suspended') await ctx.resume()
 
@@ -157,6 +164,7 @@ export function useWebAudio() {
     waveform,
     play,
     stop,
+    resume,
     playImpulse,
     setFrequency,
     setAmplitude,

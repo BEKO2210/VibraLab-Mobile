@@ -21,6 +21,7 @@ export default function TapTest({ sensor, analyzer, audio, onSave }) {
   const [selfExcite, setSelfExcite] = useState(false)
   const [exciteMethod, setExciteMethod] = useState('speaker') // 'speaker' | 'vibrate'
   const [useMic, setUseMic] = useState(true)
+  const [runs, setRuns] = useState(5)
   const [vibeTested, setVibeTested] = useState(null) // null | true | false
   const [saved, setSaved] = useState(false)
 
@@ -30,15 +31,17 @@ export default function TapTest({ sensor, analyzer, audio, onSave }) {
     [tap.ringdown],
   )
 
+  // Fired once per run by the hook (audio context is unlocked in onMeasure).
+  const fireExcite = () => {
+    if (exciteMethod === 'vibrate' && canVibrate) navigator.vibrate(160)
+    else audio?.playImpulse?.(130) // speaker click — independent of the OS motor
+  }
+
   const onMeasure = () => {
-    // Fire the excitation FIRST, synchronously inside the click handler, so the
-    // browser's transient user-activation stays valid (a mic permission prompt
-    // would otherwise consume it; Android also blocks vibration without it).
-    if (selfExcite) {
-      if (exciteMethod === 'vibrate' && canVibrate) navigator.vibrate(160)
-      else audio?.playImpulse?.(90) // speaker click — independent of the OS motor
-    }
-    tap.arm({ selfExcite, useMic })
+    // Unlock audio within the user gesture; arm() runs its first excitation
+    // synchronously (still in-gesture) before the mic permission prompt.
+    if (selfExcite) audio?.resume?.()
+    tap.arm({ selfExcite, useMic, runs, excite: selfExcite ? fireExcite : undefined })
     if (useMic && mic.status !== 'running') mic.start()
   }
 
@@ -124,6 +127,32 @@ export default function TapTest({ sensor, analyzer, audio, onSave }) {
             hint="Erfasst zusätzlich den hörbaren Klang (auch > 30 Hz)."
             disabled={busy}
           />
+
+          {/* Number of validation runs */}
+          <div className="flex items-center justify-between pt-1">
+            <span className="text-sm text-gray-200">
+              Durchläufe
+              <span className="block text-[11px] text-gray-600">
+                Mehrfach messen & nur konsistentes Ergebnis zeigen.
+              </span>
+            </span>
+            <div className="flex gap-1.5">
+              {[3, 5, 8].map((n) => (
+                <button
+                  key={n}
+                  onClick={() => setRuns(n)}
+                  disabled={busy}
+                  className={`w-10 py-1.5 rounded-lg text-sm border transition-colors disabled:opacity-40 ${
+                    runs === n
+                      ? 'bg-accent/15 border-accent text-accent'
+                      : 'bg-white/[0.04] border-white/10 text-gray-400'
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Big action button */}
@@ -142,9 +171,13 @@ export default function TapTest({ sensor, analyzer, audio, onSave }) {
               : 'bg-brand-gradient text-ink shadow-glow'
           }`}
         >
-          {tap.status === 'idle' && '📍 Auf Objekt legen & messen'}
-          {tap.status === 'armed' && (selfExcite ? '… Anregung …' : '👆 Jetzt Objekt antippen')}
-          {tap.status === 'capturing' && '◉ Messe Ausschwingen…'}
+          {tap.status === 'idle' && `📍 Auf Objekt legen & ${runs}× messen`}
+          {tap.status === 'armed' &&
+            (selfExcite
+              ? `… Anregung (${tap.runInfo.current}/${tap.runInfo.total}) …`
+              : `👆 Antippen (${tap.runInfo.current}/${tap.runInfo.total})`)}
+          {tap.status === 'capturing' &&
+            `◉ Messe… (${tap.runInfo.current}/${tap.runInfo.total})`}
           {tap.status === 'done' && '↺ Nochmal messen'}
         </motion.button>
 
@@ -218,10 +251,11 @@ export default function TapTest({ sensor, analyzer, audio, onSave }) {
         )}
 
         <p className="text-xs text-gray-600 px-2">
-          Lege das Handy flach auf das Objekt. Tippe das Objekt kurz an (oder aktiviere die
-          Selbst-Anregung) — die App misst, wie es ausschwingt, und bestimmt Resonanzfrequenz
-          und Dämpfung. Funktioniert für beliebige Objekte; je nach Steifigkeit liegt die
-          Resonanz im Vibrations- oder im hörbaren Bereich.
+          Lege das Handy flach auf das Objekt. Die App misst <strong>mehrfach</strong>
+          hintereinander (bei Selbst-Anregung pingt sie pro Durchlauf; sonst jeweils antippen)
+          und zeigt nur das Ergebnis, das über die Durchläufe <strong>übereinstimmt</strong> —
+          mit Streuung als Verlässlichkeits-Maß. Je nach Steifigkeit liegt die Resonanz im
+          Vibrations- (Akzelerometer) oder im hörbaren Bereich (Mikrofon).
         </p>
       </PermissionGate>
     </section>
@@ -243,19 +277,37 @@ function ResultCard({ icon, title, subtitle, res, empty }) {
         <span className="font-mono text-[10px] text-gray-600">{subtitle}</span>
       </div>
       {res && res.frequency ? (
-        <div className="grid grid-cols-3 gap-3 text-center">
-          <Stat label="Resonanz" value={formatHz(res.frequency)} accent="text-warn" big />
-          <Stat label="Q-Faktor" value={formatQ(res.q)} accent="text-accent" />
-          <Stat
-            label="Ausschwingen"
-            value={res.tau != null ? `${(res.tau * 1000).toFixed(0)} ms` : '—'}
-            accent="text-accent2"
-          />
-        </div>
+        <>
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <Stat label="Resonanz" value={formatHz(res.frequency)} accent="text-warn" big />
+            <Stat label="Q-Faktor" value={formatQ(res.q)} accent="text-accent" />
+            <Stat
+              label="Ausschwingen"
+              value={res.tau != null ? `${(res.tau * 1000).toFixed(0)} ms` : '—'}
+              accent="text-accent2"
+            />
+          </div>
+          {res.agree != null && <Agreement res={res} />}
+        </>
       ) : (
         <p className="text-sm text-gray-500">{empty}</p>
       )}
     </motion.div>
+  )
+}
+
+/** Confidence row: how many runs agreed and the frequency spread. */
+function Agreement({ res }) {
+  const ratio = res.total ? res.agree / res.total : 0
+  const tone = ratio >= 0.8 ? 'text-accent' : ratio >= 0.5 ? 'text-warn' : 'text-red-400'
+  const label = ratio >= 0.8 ? 'konsistent' : ratio >= 0.5 ? 'eher konsistent' : 'unsicher'
+  return (
+    <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
+      <span className={tone}>
+        ● {res.agree}/{res.total} Durchläufe stimmen überein · {label}
+      </span>
+      <span className="font-mono text-gray-500">±{res.spreadPct.toFixed(1)}%</span>
+    </div>
   )
 }
 
