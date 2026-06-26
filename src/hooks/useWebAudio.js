@@ -107,6 +107,37 @@ export function useWebAudio() {
     if (oscRef.current) oscRef.current.type = type
   }, [])
 
+  /**
+   * Emit a short, loud "impact" — an exponentially-decaying white-noise burst
+   * through the speaker. Used by the tap test to self-excite the object the
+   * phone is resting on, independent of the OS vibration motor (which Android
+   * may block in silent/DND mode). Must be called from a user gesture.
+   *
+   * @param {number} durationMs  burst length (default 90 ms)
+   * @returns {number} the burst duration in ms, so callers can time the capture
+   */
+  const playImpulse = useCallback(async (durationMs = 90) => {
+    const ctx = ensureContext()
+    if (ctx.state === 'suspended') await ctx.resume()
+
+    const len = Math.floor((ctx.sampleRate * durationMs) / 1000)
+    const buffer = ctx.createBuffer(1, len, ctx.sampleRate)
+    const data = buffer.getChannelData(0)
+    // White noise with a fast exponential decay → a broadband click/impact.
+    for (let i = 0; i < len; i++) {
+      const env = Math.exp((-5 * i) / len)
+      data[i] = (Math.random() * 2 - 1) * env
+    }
+
+    const src = ctx.createBufferSource()
+    src.buffer = buffer
+    const gain = ctx.createGain()
+    gain.gain.setValueAtTime(1, ctx.currentTime) // full level for strong excitation
+    src.connect(gain).connect(ctx.destination)
+    src.start()
+    return durationMs
+  }, [ensureContext])
+
   // Tear down the audio context when the hook unmounts.
   useEffect(() => {
     return () => {
@@ -126,6 +157,7 @@ export function useWebAudio() {
     waveform,
     play,
     stop,
+    playImpulse,
     setFrequency,
     setAmplitude,
     setWaveform,

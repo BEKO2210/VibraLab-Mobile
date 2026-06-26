@@ -106,7 +106,11 @@ src/
 1. **Tap**-Tab öffnen, Akzelerometer-Zugriff erlauben (optional Mikrofon mitnutzen).
 2. Handy **flach auf das Objekt** legen.
 3. **„Auf Objekt legen & messen"** drücken, dann das Objekt kurz **antippen**
-   (oder vorher *Selbst-Anregung* aktivieren — dann pingt sich das Handy selbst).
+   (oder *Selbst-Anregung* aktivieren). Bei Selbst-Anregung wählbar:
+   - 🔊 **Lautsprecher** *(Standard, empfohlen)* — kurzer Klick regt das Objekt an,
+     **unabhängig vom Vibrationsmotor**.
+   - 📳 **Vibration** — nutzt `navigator.vibrate`; auf Android (v.a. Samsung) im
+     Lautlos-/Energiesparmodus oft vom System blockiert.
 4. Die App erkennt den Anstoß automatisch, misst das Ausschwingen und zeigt
    **Resonanzfrequenz, Q-Faktor und Ausschwingzeit** — strukturell und akustisch.
 
