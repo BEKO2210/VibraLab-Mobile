@@ -88,7 +88,7 @@ export default function App() {
               <SweepPanel audio={audio} analyzer={analyzer} onSave={history.add} />
             )}
             {tab === 'tap' && (
-              <TapTest sensor={sensor} analyzer={analyzer} onSave={history.add} />
+              <TapTest sensor={sensor} analyzer={analyzer} audio={audio} onSave={history.add} />
             )}
           </motion.div>
         </AnimatePresence>

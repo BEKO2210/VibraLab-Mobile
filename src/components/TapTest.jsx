@@ -15,10 +15,11 @@ import { formatHz, formatQ } from '../utils/format'
  */
 const canVibrate = typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function'
 
-export default function TapTest({ sensor, analyzer, onSave }) {
+export default function TapTest({ sensor, analyzer, audio, onSave }) {
   const mic = analyzer.mic
   const tap = useTapTest(sensor, mic)
   const [selfExcite, setSelfExcite] = useState(false)
+  const [exciteMethod, setExciteMethod] = useState('speaker') // 'speaker' | 'vibrate'
   const [useMic, setUseMic] = useState(true)
   const [vibeTested, setVibeTested] = useState(null) // null | true | false
   const [saved, setSaved] = useState(false)
@@ -30,10 +31,13 @@ export default function TapTest({ sensor, analyzer, onSave }) {
   )
 
   const onMeasure = () => {
-    // Fire the buzz FIRST, synchronously inside the click handler, so the
-    // browser's transient user-activation is still valid (a mic permission
-    // prompt would otherwise consume it and Android blocks the vibration).
-    if (selfExcite && canVibrate) navigator.vibrate(160)
+    // Fire the excitation FIRST, synchronously inside the click handler, so the
+    // browser's transient user-activation stays valid (a mic permission prompt
+    // would otherwise consume it; Android also blocks vibration without it).
+    if (selfExcite) {
+      if (exciteMethod === 'vibrate' && canVibrate) navigator.vibrate(160)
+      else audio?.playImpulse?.(90) // speaker click — independent of the OS motor
+    }
     tap.arm({ selfExcite, useMic })
     if (useMic && mic.status !== 'running') mic.start()
   }
@@ -57,26 +61,59 @@ export default function TapTest({ sensor, analyzer, onSave }) {
           <Toggle
             checked={selfExcite}
             onChange={() => setSelfExcite((v) => !v)}
-            label="Selbst-Anregung (Vibration)"
-            hint={
-              canVibrate
-                ? 'Handy pingt sich selbst per Vibrationsmotor — sonst Objekt antippen.'
-                : 'Dieses Gerät/Browser unterstützt keine Vibration — Objekt antippen.'
-            }
-            disabled={busy || !canVibrate}
+            label="Selbst-Anregung"
+            hint="Handy regt das Objekt selbst an — sonst Objekt von Hand antippen."
+            disabled={busy}
           />
-          {selfExcite && canVibrate && (
-            <div className="flex items-center gap-3 pl-1">
-              <button
-                onClick={onTestVibration}
-                disabled={busy}
-                className="rounded-lg border border-white/10 bg-white/[0.05] px-3 py-1.5 text-xs text-gray-200 active:scale-95 transition-transform"
-              >
-                📳 Vibration testen
-              </button>
-              {vibeTested === true && <span className="text-xs text-accent">Sollte gebrummt haben ✓</span>}
-              {vibeTested === false && (
-                <span className="text-xs text-warn">Kein Brummen — Energiesparmodus?</span>
+          {selfExcite && (
+            <div className="pl-1 space-y-2">
+              {/* Excitation method — speaker click is the reliable default */}
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: 'speaker', label: '🔊 Lautsprecher', hint: 'immer verfügbar' },
+                  { id: 'vibrate', label: '📳 Vibration', hint: canVibrate ? 'OS-abhängig' : 'nicht unterstützt' },
+                ].map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => setExciteMethod(m.id)}
+                    disabled={busy || (m.id === 'vibrate' && !canVibrate)}
+                    className={`rounded-xl px-3 py-2 text-sm border transition-colors disabled:opacity-40 ${
+                      exciteMethod === m.id
+                        ? 'bg-accent/15 border-accent text-accent'
+                        : 'bg-white/[0.04] border-white/10 text-gray-400'
+                    }`}
+                  >
+                    <div>{m.label}</div>
+                    <div className="text-[10px] opacity-70">{m.hint}</div>
+                  </button>
+                ))}
+              </div>
+              {exciteMethod === 'speaker' && (
+                <p className="text-[11px] text-gray-600">
+                  Kurzer Klick über die Lautsprecher regt das Objekt an — funktioniert
+                  unabhängig vom Vibrationsmotor. Lautstärke aufdrehen für mehr Wirkung.
+                </p>
+              )}
+              {exciteMethod === 'vibrate' && canVibrate && (
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={onTestVibration}
+                    disabled={busy}
+                    className="rounded-lg border border-white/10 bg-white/[0.05] px-3 py-1.5 text-xs text-gray-200 active:scale-95 transition-transform"
+                  >
+                    📳 Vibration testen
+                  </button>
+                  {vibeTested === true && <span className="text-xs text-accent">brummt? ✓</span>}
+                  {vibeTested === false && (
+                    <span className="text-xs text-warn">kein Brummen</span>
+                  )}
+                </div>
+              )}
+              {exciteMethod === 'vibrate' && (
+                <p className="text-[11px] text-warn/80">
+                  Vibration wird von Android im Lautlos-/Energiesparmodus oft blockiert
+                  (besonders Samsung). Wenn nichts brummt: Lautsprecher-Methode nutzen.
+                </p>
               )}
             </div>
           )}
