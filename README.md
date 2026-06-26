@@ -121,8 +121,14 @@ weiche **Motion**-Übergänge (Framer Motion) und Microinteractions. Live-Daten-
 bewusst frei von Deko-Animationen (Messqualität/60 FPS gehen vor). `prefers-reduced-motion`
 wird respektiert.
 
+## Mess-History
+
+Sweep- und Tap-Ergebnisse lassen sich mit **★ Speichern** benennen und im **Verlauf**
+(Uhr-Icon oben rechts) festhalten — persistent via `localStorage`, mit Frequenz, Q-Faktor,
+Quelle und Zeitstempel; einzeln oder komplett löschbar.
+
 ## Roadmap (nächste Iterationen)
 
-- **Phase 5+** — Mess-**History** (Tap-/Sweep-Ergebnisse speichern & vergleichen), Settings
 - **Phase 6** — JSON/PNG-Export + GitHub-Actions-Deploy
+- **Settings** — FFT-Größe, Samplerate, Schwellwerte einstellbar
 - **Phase 7** — Multi-Objekt-Vergleich (Dämpfungs-/Decay-Analyse ist mit Phase 8 grundgelegt)

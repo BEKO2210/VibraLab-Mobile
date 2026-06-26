@@ -8,9 +8,11 @@ import TapTest from './components/TapTest'
 import Logo from './components/Logo'
 import AnimatedBackground from './components/AnimatedBackground'
 import TabIcon from './components/TabIcon'
+import HistorySheet from './components/HistorySheet'
 import { useWebAudio } from './hooks/useWebAudio'
 import { useSensorData } from './hooks/useSensorData'
 import { useAnalyzer } from './hooks/useAnalyzer'
+import { useHistory } from './hooks/useHistory'
 
 const TABS = [
   { id: 'generator', label: 'Gen.', icon: 'generator' },
@@ -22,11 +24,13 @@ const TABS = [
 
 export default function App() {
   const [tab, setTab] = useState('generator')
+  const [historyOpen, setHistoryOpen] = useState(false)
 
   // Shared instances so state persists across tab switches.
   const audio = useWebAudio()
   const sensor = useSensorData()
   const analyzer = useAnalyzer(sensor)
+  const history = useHistory()
 
   return (
     <div className="relative min-h-full flex flex-col max-w-lg mx-auto">
@@ -37,7 +41,7 @@ export default function App() {
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="px-5 pt-7 pb-4"
+        className="px-5 pt-7 pb-4 flex items-center justify-between"
       >
         <div className="flex items-center gap-3">
           <Logo size={34} />
@@ -49,6 +53,22 @@ export default function App() {
             <p className="text-[11px] text-gray-500 tracking-wide">Resonanz- & Vibrationsanalyse</p>
           </div>
         </div>
+        <button
+          onClick={() => setHistoryOpen(true)}
+          className="relative rounded-xl border border-white/10 bg-white/[0.05] p-2.5 text-gray-300 active:scale-95 transition-transform"
+          aria-label="Verlauf"
+        >
+          <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 3v5h5" />
+            <path d="M3.05 13A9 9 0 106 5.3L3 8" />
+            <path d="M12 7v5l3 2" />
+          </svg>
+          {history.entries.length > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-brand-gradient text-ink text-[10px] font-bold flex items-center justify-center px-1">
+              {history.entries.length}
+            </span>
+          )}
+        </button>
       </motion.header>
 
       {/* Content with page transitions */}
@@ -64,11 +84,17 @@ export default function App() {
             {tab === 'generator' && <FrequencyGenerator audio={audio} />}
             {tab === 'sensor' && <SensorMonitor sensor={sensor} />}
             {tab === 'analyzer' && <FFTAnalyzer analyzer={analyzer} />}
-            {tab === 'sweep' && <SweepPanel audio={audio} analyzer={analyzer} />}
-            {tab === 'tap' && <TapTest sensor={sensor} analyzer={analyzer} />}
+            {tab === 'sweep' && (
+              <SweepPanel audio={audio} analyzer={analyzer} onSave={history.add} />
+            )}
+            {tab === 'tap' && (
+              <TapTest sensor={sensor} analyzer={analyzer} onSave={history.add} />
+            )}
           </motion.div>
         </AnimatePresence>
       </main>
+
+      <HistorySheet open={historyOpen} onClose={() => setHistoryOpen(false)} history={history} />
 
       {/* Bottom tab bar — frosted glass, spring active indicator */}
       <nav className="fixed bottom-0 inset-x-0 max-w-lg mx-auto z-20">

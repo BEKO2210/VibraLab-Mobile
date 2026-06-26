@@ -130,10 +130,12 @@ export function useTapTest(sensor, mic) {
       setStatus('armed')
 
       // --- Excite / wait for the impact -------------------------------------
+      // For self-excite the caller fires navigator.vibrate() synchronously
+      // inside the click handler (so the browser's user-activation isn't lost);
+      // here we just wait for the buzz to finish — its tail rings the object.
       let impact = false
-      if (selfExcite && typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate(60)
-        await sleep(140) // let the buzz finish; its tail is the excitation
+      if (selfExcite) {
+        await sleep(220)
         impact = runningRef.current
       } else {
         // Establish a noise baseline, then watch for a transient above it.

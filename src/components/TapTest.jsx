@@ -13,11 +13,15 @@ import { formatHz, formatQ } from '../utils/format'
  * damping from the captured ringdown — structurally (accelerometer) and
  * acoustically (microphone).
  */
-export default function TapTest({ sensor, analyzer }) {
+const canVibrate = typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function'
+
+export default function TapTest({ sensor, analyzer, onSave }) {
   const mic = analyzer.mic
   const tap = useTapTest(sensor, mic)
   const [selfExcite, setSelfExcite] = useState(false)
   const [useMic, setUseMic] = useState(true)
+  const [vibeTested, setVibeTested] = useState(null) // null | true | false
+  const [saved, setSaved] = useState(false)
 
   const ringMax = ringdownRange(tap.ringdown)
   const getFrame = useCallback(
@@ -26,8 +30,21 @@ export default function TapTest({ sensor, analyzer }) {
   )
 
   const onMeasure = () => {
-    if (useMic && mic.status !== 'running') mic.start() // request mic up-front
+    // Fire the buzz FIRST, synchronously inside the click handler, so the
+    // browser's transient user-activation is still valid (a mic permission
+    // prompt would otherwise consume it and Android blocks the vibration).
+    if (selfExcite && canVibrate) navigator.vibrate(160)
     tap.arm({ selfExcite, useMic })
+    if (useMic && mic.status !== 'running') mic.start()
+  }
+
+  const onTestVibration = () => {
+    if (!canVibrate) {
+      setVibeTested(false)
+      return
+    }
+    const ok = navigator.vibrate(200)
+    setVibeTested(ok !== false)
   }
 
   const busy = tap.status === 'armed' || tap.status === 'capturing'
@@ -41,9 +58,28 @@ export default function TapTest({ sensor, analyzer }) {
             checked={selfExcite}
             onChange={() => setSelfExcite((v) => !v)}
             label="Selbst-Anregung (Vibration)"
-            hint="Handy pingt sich selbst per Vibrationsmotor — sonst Objekt antippen."
-            disabled={busy}
+            hint={
+              canVibrate
+                ? 'Handy pingt sich selbst per Vibrationsmotor — sonst Objekt antippen.'
+                : 'Dieses Gerät/Browser unterstützt keine Vibration — Objekt antippen.'
+            }
+            disabled={busy || !canVibrate}
           />
+          {selfExcite && canVibrate && (
+            <div className="flex items-center gap-3 pl-1">
+              <button
+                onClick={onTestVibration}
+                disabled={busy}
+                className="rounded-lg border border-white/10 bg-white/[0.05] px-3 py-1.5 text-xs text-gray-200 active:scale-95 transition-transform"
+              >
+                📳 Vibration testen
+              </button>
+              {vibeTested === true && <span className="text-xs text-accent">Sollte gebrummt haben ✓</span>}
+              {vibeTested === false && (
+                <span className="text-xs text-warn">Kein Brummen — Energiesparmodus?</span>
+              )}
+            </div>
+          )}
           <Toggle
             checked={useMic}
             onChange={() => setUseMic((v) => !v)}
@@ -120,6 +156,27 @@ export default function TapTest({ sensor, analyzer }) {
                 }
               />
             )}
+
+            <button
+              onClick={() => {
+                const best = tap.result.mic?.frequency ? tap.result.mic : tap.result.accel
+                if (!best?.frequency) return
+                const name = window.prompt('Name der Messung?', 'Tap-Messung')
+                if (name === null) return
+                onSave?.({
+                  type: 'tap',
+                  name: name || 'Tap-Messung',
+                  frequency: best.frequency,
+                  q: best.q,
+                  source: best === tap.result.mic ? 'Mikrofon' : 'Akzel.',
+                })
+                setSaved(true)
+                setTimeout(() => setSaved(false), 1500)
+              }}
+              className="w-full rounded-2xl py-3 text-sm font-semibold border border-white/10 bg-white/[0.05] text-gray-200 active:scale-[0.98] transition-transform"
+            >
+              {saved ? '✓ Im Verlauf gespeichert' : '★ Messung speichern'}
+            </button>
           </div>
         )}
 
