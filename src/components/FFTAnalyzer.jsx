@@ -52,7 +52,7 @@ export default function FFTAnalyzer({ analyzer }) {
       <SourceToggle source={source} onChange={setSource} />
 
       <PermissionGate status={status} onRequest={start} label={isMic ? 'Mikrofon' : 'Akzelerometer'}>
-        <div className="rounded-2xl bg-panel border border-edge p-4">
+        <div className="card p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-300">FFT-Spektrum</span>
             <span className="font-mono text-[11px] text-gray-500">0–{maxHz} Hz</span>

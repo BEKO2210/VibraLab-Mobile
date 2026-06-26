@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion } from 'motion/react'
 import SourceToggle from './SourceToggle'
 import PermissionGate from './PermissionGate'
 import ResponseChart from './charts/ResponseChart'
@@ -41,7 +42,7 @@ export default function SweepPanel({ audio, analyzer }) {
         label={analyzer.isMic ? 'Mikrofon' : 'Akzelerometer'}
       >
         {/* Range + speed controls */}
-        <div className="rounded-2xl bg-panel border border-edge p-5 space-y-5">
+        <div className="card p-5 space-y-5">
           <Field label="Start" value={startHz} unit="Hz">
             <input
               type="range"
@@ -84,30 +85,32 @@ export default function SweepPanel({ audio, analyzer }) {
         {/* Transport + progress */}
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <button
+            <motion.button
               onClick={onStart}
               disabled={running}
-              className="rounded-2xl py-4 text-lg font-semibold bg-accent text-ink disabled:opacity-40 active:scale-[0.99] transition-transform"
+              whileTap={{ scale: 0.96 }}
+              className="rounded-2xl py-4 text-lg font-semibold bg-brand-gradient text-ink shadow-glow disabled:opacity-40 disabled:shadow-none"
             >
               ▶ Sweep starten
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={running ? sweep.cancel : sweep.reset}
-              className="rounded-2xl py-4 text-lg font-semibold bg-edge text-gray-200 active:scale-[0.99] transition-transform"
+              whileTap={{ scale: 0.96 }}
+              className="rounded-2xl py-4 text-lg font-semibold border border-white/10 bg-white/[0.05] text-gray-200"
             >
               {running ? '■ Stop' : '↺ Reset'}
-            </button>
+            </motion.button>
           </div>
-          <div className="h-2 rounded-full bg-edge overflow-hidden">
+          <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
             <div
-              className="h-full bg-accent transition-[width] duration-100"
+              className="h-full bg-brand-gradient transition-[width] duration-100"
               style={{ width: `${Math.round(sweep.progress * 100)}%` }}
             />
           </div>
         </div>
 
         {/* Response curve */}
-        <div className="rounded-2xl bg-panel border border-edge p-4">
+        <div className="card p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-300">Amplituden-Response</span>
             <span className="font-mono text-[11px] text-gray-500">

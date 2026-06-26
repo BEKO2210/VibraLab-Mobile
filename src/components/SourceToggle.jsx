@@ -9,7 +9,7 @@ export default function SourceToggle({ source, onChange }) {
     { id: 'accel', label: '📳 Akzelerometer', hint: '< ~30 Hz' },
   ]
   return (
-    <div className="grid grid-cols-2 gap-2 rounded-2xl bg-panel border border-edge p-2">
+    <div className="grid grid-cols-2 gap-2 card p-2">
       {options.map((o) => (
         <button
           key={o.id}

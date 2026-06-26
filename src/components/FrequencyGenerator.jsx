@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { motion } from 'motion/react'
 import { formatHz } from '../utils/format'
 import { clamp } from '../utils/format'
 
@@ -35,18 +36,32 @@ export default function FrequencyGenerator({ audio }) {
   return (
     <section className="space-y-6">
       {/* Big readout */}
-      <div className="rounded-2xl bg-panel border border-edge p-6 text-center">
+      <div className="card p-6 text-center relative overflow-hidden">
+        {isPlaying && (
+          <div className="absolute top-3 right-4 flex items-center gap-1.5">
+            <motion.span
+              className="w-2 h-2 rounded-full bg-accent"
+              animate={{ opacity: [1, 0.2, 1], scale: [1, 0.8, 1] }}
+              transition={{ duration: 1.2, repeat: Infinity }}
+            />
+            <span className="text-[10px] uppercase tracking-widest text-accent">live</span>
+          </div>
+        )}
         <div className="text-xs uppercase tracking-widest text-gray-500 mb-1">Frequenz</div>
-        <div className="font-mono text-5xl font-semibold text-accent tabular-nums">
+        <div
+          className={`readout text-5xl font-semibold ${
+            isPlaying ? 'gradient-text text-glow' : 'text-gray-300'
+          }`}
+        >
           {formatHz(frequency)}
         </div>
-        <div className="mt-1 font-mono text-sm text-gray-500">
+        <div className="mt-1 readout text-sm text-gray-500">
           Amplitude {Math.round(amplitude * 100)}%
         </div>
       </div>
 
       {/* Frequency slider */}
-      <div className="rounded-2xl bg-panel border border-edge p-5 space-y-4">
+      <div className="card p-5 space-y-4">
         <div className="flex items-center justify-between">
           <label className="text-sm text-gray-300">Frequenz ({MIN_HZ}–{MAX_HZ} Hz)</label>
           <input
@@ -75,7 +90,7 @@ export default function FrequencyGenerator({ audio }) {
       </div>
 
       {/* Amplitude slider */}
-      <div className="rounded-2xl bg-panel border border-edge p-5 space-y-4">
+      <div className="card p-5 space-y-4">
         <div className="flex items-center justify-between">
           <label className="text-sm text-gray-300">Amplitude</label>
           <span className="font-mono text-accent">{Math.round(amplitude * 100)}%</span>
@@ -91,7 +106,7 @@ export default function FrequencyGenerator({ audio }) {
       </div>
 
       {/* Waveform selector */}
-      <div className="rounded-2xl bg-panel border border-edge p-5">
+      <div className="card p-5">
         <label className="text-sm text-gray-300 mb-3 block">Wellenform</label>
         <div className="grid grid-cols-2 gap-2">
           {WAVEFORMS.map((w) => (
@@ -112,20 +127,22 @@ export default function FrequencyGenerator({ audio }) {
 
       {/* Transport */}
       <div className="grid grid-cols-2 gap-3">
-        <button
+        <motion.button
           onClick={play}
           disabled={isPlaying}
-          className="rounded-2xl py-5 text-lg font-semibold bg-accent text-ink disabled:opacity-40 active:scale-[0.99] transition-transform"
+          whileTap={{ scale: 0.96 }}
+          className="rounded-2xl py-5 text-lg font-semibold bg-brand-gradient text-ink shadow-glow disabled:opacity-40 disabled:shadow-none"
         >
           ▶ Play
-        </button>
-        <button
+        </motion.button>
+        <motion.button
           onClick={stop}
           disabled={!isPlaying}
-          className="rounded-2xl py-5 text-lg font-semibold bg-edge text-gray-200 disabled:opacity-40 active:scale-[0.99] transition-transform"
+          whileTap={{ scale: 0.96 }}
+          className="rounded-2xl py-5 text-lg font-semibold border border-white/10 bg-white/[0.05] text-gray-200 disabled:opacity-40"
         >
           ■ Stop
-        </button>
+        </motion.button>
       </div>
 
       <p className="text-center text-xs text-gray-600 px-4">

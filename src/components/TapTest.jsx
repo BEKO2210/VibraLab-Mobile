@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import { motion } from 'motion/react'
 import PermissionGate from './PermissionGate'
 import LineChart from './charts/LineChart'
 import { useTapTest } from '../hooks/useTapTest'
@@ -35,7 +36,7 @@ export default function TapTest({ sensor, analyzer }) {
     <section className="space-y-4">
       <PermissionGate status={sensor.status} onRequest={sensor.start} label="Akzelerometer">
         {/* Options */}
-        <div className="rounded-2xl bg-panel border border-edge p-4 space-y-3">
+        <div className="card p-4 space-y-3">
           <Toggle
             checked={selfExcite}
             onChange={() => setSelfExcite((v) => !v)}
@@ -53,25 +54,40 @@ export default function TapTest({ sensor, analyzer }) {
         </div>
 
         {/* Big action button */}
-        <button
+        <motion.button
           onClick={busy ? tap.cancel : tap.status === 'done' ? tap.reset : onMeasure}
-          className={`w-full rounded-2xl py-6 text-lg font-semibold active:scale-[0.99] transition-transform ${
-            busy ? 'bg-edge text-gray-200' : 'bg-accent text-ink'
+          whileTap={{ scale: 0.97 }}
+          animate={
+            tap.status === 'capturing'
+              ? { boxShadow: ['0 0 0px rgba(52,211,153,0)', '0 0 30px -4px rgba(52,211,153,0.6)', '0 0 0px rgba(52,211,153,0)'] }
+              : {}
+          }
+          transition={{ duration: 1.4, repeat: tap.status === 'capturing' ? Infinity : 0 }}
+          className={`w-full rounded-2xl py-6 text-lg font-semibold ${
+            busy
+              ? 'border border-white/10 bg-white/[0.05] text-gray-200'
+              : 'bg-brand-gradient text-ink shadow-glow'
           }`}
         >
           {tap.status === 'idle' && '📍 Auf Objekt legen & messen'}
           {tap.status === 'armed' && (selfExcite ? '… Anregung …' : '👆 Jetzt Objekt antippen')}
           {tap.status === 'capturing' && '◉ Messe Ausschwingen…'}
           {tap.status === 'done' && '↺ Nochmal messen'}
-        </button>
+        </motion.button>
 
         {tap.status === 'armed' && !selfExcite && (
-          <p className="text-center text-sm text-warn">Warte auf Anstoß…</p>
+          <motion.p
+            className="text-center text-sm text-warn"
+            animate={{ opacity: [1, 0.4, 1] }}
+            transition={{ duration: 1.2, repeat: Infinity }}
+          >
+            Warte auf Anstoß…
+          </motion.p>
         )}
 
         {/* Ringdown trace */}
         {tap.ringdown.length > 0 && (
-          <div className="rounded-2xl bg-panel border border-edge p-4">
+          <div className="card p-4">
             <div className="text-sm text-gray-300 mb-2">Ausschwing-Verlauf (Akzelerometer)</div>
             <LineChart getFrame={getFrame} range={ringMax} height={140} grid={false} />
           </div>
@@ -120,7 +136,12 @@ export default function TapTest({ sensor, analyzer }) {
 
 function ResultCard({ icon, title, subtitle, res, empty }) {
   return (
-    <div className="rounded-2xl bg-panel border border-edge p-5">
+    <motion.div
+      initial={{ opacity: 0, y: 14, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 320, damping: 26 }}
+      className="card p-5"
+    >
       <div className="flex items-baseline justify-between mb-3">
         <span className="text-sm text-gray-300">
           {icon} {title}
@@ -140,7 +161,7 @@ function ResultCard({ icon, title, subtitle, res, empty }) {
       ) : (
         <p className="text-sm text-gray-500">{empty}</p>
       )}
-    </div>
+    </motion.div>
   )
 }
 

@@ -7,9 +7,9 @@ Miniatur-Brücke) mit einem Ton an, misst die Vibrations- bzw. Audio-Antwort und
 
 Das ist angewandte Strukturdynamik / Modalanalyse im Kleinformat — kein Voodoo.
 
-> **Status:** Phase 1–4. Generator, Live-Sensor-Monitor, FFT-/Resonanz-Erkennung
-> **und der automatische Sweep mit CSV-Export** sind fertig. UI-Polish & weitere
-> Export-Formate folgen.
+> **Status:** Phase 1–4 + 8 + Visual-Upgrade (Phase 5). Generator, Sensor-Monitor,
+> FFT-/Resonanz-Erkennung, automatischer Sweep mit CSV-Export und der Tap-/Ping-Test
+> sind fertig — jetzt mit Premium-Dark-UI (Glas, animiertes Logo, Motion).
 
 **Live:** https://vibra-lab-mobile.vercel.app/
 
@@ -113,8 +113,16 @@ src/
 > Steife/kleine Objekte klingen oft im hörbaren Bereich → das **Mikrofon**-Ergebnis ist dann
 > aussagekräftiger als das Akzelerometer (das durch Nyquist auf ~30 Hz begrenzt ist).
 
+## Design
+
+Premium-Dark im Instrument-Stil (angelehnt an Apple/Tesla/Samsung): tiefes Near-Black,
+**Cyan→Emerald-Signatur-Gradient**, **Glasmorphismus**-Cards, **animiertes Wellenform-Logo**,
+weiche **Motion**-Übergänge (Framer Motion) und Microinteractions. Live-Daten-Canvases bleiben
+bewusst frei von Deko-Animationen (Messqualität/60 FPS gehen vor). `prefers-reduced-motion`
+wird respektiert.
+
 ## Roadmap (nächste Iterationen)
 
-- **Phase 5** — UI-Polish (3-Panel, History, Settings)
+- **Phase 5+** — Mess-**History** (Tap-/Sweep-Ergebnisse speichern & vergleichen), Settings
 - **Phase 6** — JSON/PNG-Export + GitHub-Actions-Deploy
 - **Phase 7** — Multi-Objekt-Vergleich (Dämpfungs-/Decay-Analyse ist mit Phase 8 grundgelegt)

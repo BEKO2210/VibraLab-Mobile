@@ -5,7 +5,7 @@ import { formatHz, formatQ, formatDb } from '../utils/format'
  */
 export default function ResonanceResult({ peak }) {
   return (
-    <div className="rounded-2xl bg-panel border border-edge p-5">
+    <div className="card p-5">
       <div className="text-xs uppercase tracking-widest text-gray-500 mb-3">Erkannte Resonanz</div>
       <div className="grid grid-cols-3 gap-3 text-center">
         <Stat label="Frequenz" value={formatHz(peak?.frequency)} accent="text-warn" big />

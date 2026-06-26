@@ -38,7 +38,7 @@ export default function SensorMonitor({ sensor }) {
   return (
     <section className="space-y-4">
       <PermissionGate status={status} onRequest={start} label="Akzelerometer">
-        <div className="rounded-2xl bg-panel border border-edge p-4 space-y-3">
+        <div className="card p-4 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-300">Beschleunigung (m/s²)</span>
             <span className="font-mono text-[11px] text-gray-500">
@@ -54,7 +54,7 @@ export default function SensorMonitor({ sensor }) {
           </div>
         </div>
 
-        <div className="rounded-2xl bg-panel border border-edge p-4 flex items-center justify-between">
+        <div className="card p-4 flex items-center justify-between">
           <div>
             <div className="text-xs uppercase tracking-widest text-gray-500">Peak (AC)</div>
             <div className="font-mono text-2xl text-accent">{latest.peak.toFixed(3)}</div>
