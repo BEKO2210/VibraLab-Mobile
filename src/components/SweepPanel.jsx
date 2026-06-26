@@ -15,11 +15,12 @@ const ABS_MAX = 2000
  * Phase 4 — automated swept-sine measurement UI.
  * Drives the generator across a frequency range and plots the response curve.
  */
-export default function SweepPanel({ audio, analyzer }) {
+export default function SweepPanel({ audio, analyzer, onSave }) {
   const sweep = useSweep(audio, analyzer)
   const [startHz, setStartHz] = useState(20)
   const [endHz, setEndHz] = useState(500)
   const [speed, setSpeed] = useState(50) // Hz/s
+  const [saved, setSaved] = useState(false)
 
   // The accelerometer can only measure up to its Nyquist limit.
   const sourceMax = analyzer.isMic ? ABS_MAX : analyzer.maxHz
@@ -127,22 +128,45 @@ export default function SweepPanel({ audio, analyzer }) {
 
         <ResonanceResult peak={sweep.result} />
 
-        {/* Export */}
-        <button
-          onClick={() =>
-            exportSweepCsv(sweep.points, {
-              source: analyzer.source,
-              startHz,
-              endHz: effectiveEnd,
-              speed,
-              result: sweep.result,
-            })
-          }
-          disabled={!sweep.points.length}
-          className="w-full rounded-2xl py-3 text-sm font-semibold bg-edge text-gray-200 disabled:opacity-40 active:scale-[0.99] transition-transform"
-        >
-          ⬇ CSV exportieren
-        </button>
+        {/* Save + Export */}
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => {
+              if (!sweep.result) return
+              const name = window.prompt('Name der Messung?', 'Sweep-Messung')
+              if (name === null) return
+              onSave?.({
+                type: 'sweep',
+                name: name || 'Sweep-Messung',
+                frequency: sweep.result.frequency,
+                q: sweep.result.q,
+                source: analyzer.source === 'mic' ? 'Mikrofon' : 'Akzel.',
+                range: [startHz, effectiveEnd],
+              })
+              setSaved(true)
+              setTimeout(() => setSaved(false), 1500)
+            }}
+            disabled={!sweep.result}
+            className="rounded-2xl py-3 text-sm font-semibold border border-white/10 bg-white/[0.05] text-gray-200 disabled:opacity-40 active:scale-[0.98] transition-transform"
+          >
+            {saved ? '✓ Gespeichert' : '★ Speichern'}
+          </button>
+          <button
+            onClick={() =>
+              exportSweepCsv(sweep.points, {
+                source: analyzer.source,
+                startHz,
+                endHz: effectiveEnd,
+                speed,
+                result: sweep.result,
+              })
+            }
+            disabled={!sweep.points.length}
+            className="rounded-2xl py-3 text-sm font-semibold border border-white/10 bg-white/[0.05] text-gray-200 disabled:opacity-40 active:scale-[0.98] transition-transform"
+          >
+            ⬇ CSV
+          </button>
+        </div>
 
         <p className="text-xs text-gray-600 px-2">
           Halte das Handy mit dem Lautsprecher an das Objekt. Der Sweep fährt die Frequenzen
